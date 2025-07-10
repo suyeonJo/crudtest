@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" th:replace="layout/base :: layout(~{::content}, ~{::title})">
+<head>
+    <title>게시글 목록</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-list"></i> 게시글 목록</h2>
+            <a href="/boards/new" class="btn btn-primary">
+                <i class="fas fa-plus"></i> 새 게시글 작성
+            </a>
+        </div>
+
+        <!-- Search Form -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" action="/boards" class="row g-3">
+                    <div class="col-md-3">
+                        <select name="type" class="form-select">
+                            <option value="content" th:selected="${type == 'content'}">제목+내용</option>
+                            <option value="title" th:selected="${type == 'title'}">제목</option>
+                            <option value="author" th:selected="${type == 'author'}">작성자</option>
+                        </select>
+                    </div>
+                    <div class="col-md-7">
+                        <input type="text" name="keyword" th:value="${keyword}" 
+                               class="form-control" placeholder="검색어를 입력하세요">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-search"></i> 검색
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> 
+            총 <strong th:text="${totalElements}">0</strong>개의 게시글이 있습니다.
+            <span th:if="${keyword}">
+                '<strong th:text="${keyword}"></strong>' 검색 결과입니다.
+            </span>
+        </div>
+
+        <!-- Board List -->
+        <div th:if="${boards.hasContent()}" class="row">
+            <div th:each="board : ${boards.content}" class="col-12 mb-3">
+                <div class="card card-hover">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h5 class="card-title mb-2">
+                                    <a th:href="@{/boards/{id}(id=${board.id})}" 
+                                       th:text="${board.title}" 
+                                       class="text-decoration-none"></a>
+                                </h5>
+                                <p class="card-text text-muted content-preview" th:text="${board.content}"></p>
+                                <div class="d-flex align-items-center text-muted small">
+                                    <span><i class="fas fa-user"></i> <span th:text="${board.author}"></span></span>
+                                    <span class="ms-3">
+                                        <i class="fas fa-calendar"></i> 
+                                        <span th:text="${#temporals.format(board.createdAt, 'yyyy-MM-dd HH:mm')}"></span>
+                                    </span>
+                                    <span class="ms-3">
+                                        <i class="fas fa-eye"></i> <span th:text="${board.viewCount}"></span>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-end d-flex flex-column justify-content-center">
+                                <div class="btn-group" role="group">
+                                    <a th:href="@{/boards/{id}(id=${board.id})}" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-eye"></i> 상세보기
+                                    </a>
+                                    <a th:href="@{/boards/{id}/edit(id=${board.id})}" class="btn btn-outline-warning btn-sm">
+                                        <i class="fas fa-edit"></i> 수정
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div th:unless="${boards.hasContent()}" class="text-center py-5">
+            <i class="fas fa-inbox fa-4x text-muted mb-4"></i>
+            <h4 class="text-muted">게시글이 없습니다</h4>
+            <p class="text-muted mb-4">
+                <span th:if="${keyword}">검색 조건에 맞는 게시글이 없습니다.</span>
+                <span th:unless="${keyword}">첫 번째 게시글을 작성해보세요!</span>
+            </p>
+            <a href="/boards/new" class="btn btn-primary">
+                <i class="fas fa-plus"></i> 게시글 작성하기
+            </a>
+        </div>
+
+        <!-- Pagination -->
+        <nav th:if="${boards.hasContent() && boards.totalPages > 1}" aria-label="게시글 페이지네이션">
+            <ul class="pagination justify-content-center">
+                <!-- Previous Button -->
+                <li class="page-item" th:classappend="${!boards.hasPrevious()} ? 'disabled'">
+                    <a class="page-link" 
+                       th:href="@{/boards(page=${currentPage - 1}, keyword=${keyword}, type=${type})}"
+                       th:unless="${!boards.hasPrevious()}">이전</a>
+                    <span class="page-link" th:if="${!boards.hasPrevious()}">이전</span>
+                </li>
+
+                <!-- Page Numbers -->
+                <li th:each="i : ${#numbers.sequence(0, boards.totalPages - 1)}" 
+                    class="page-item" 
+                    th:classappend="${i == currentPage} ? 'active'">
+                    <a class="page-link" 
+                       th:href="@{/boards(page=${i}, keyword=${keyword}, type=${type})}"
+                       th:text="${i + 1}"></a>
+                </li>
+
+                <!-- Next Button -->
+                <li class="page-item" th:classappend="${!boards.hasNext()} ? 'disabled'">
+                    <a class="page-link" 
+                       th:href="@{/boards(page=${currentPage + 1}, keyword=${keyword}, type=${type})}"
+                       th:unless="${!boards.hasNext()}">다음</a>
+                    <span class="page-link" th:if="${!boards.hasNext()}">다음</span>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</body>
+</html>

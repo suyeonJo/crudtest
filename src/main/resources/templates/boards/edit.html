@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" th:replace="layout/base :: layout(~{::content}, ~{::title})">
+<head>
+    <title>게시글 수정</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <!-- Navigation -->
+        <div class="mb-3">
+            <a th:href="@{/boards/{id}(id=${boardId})}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> 상세보기로
+            </a>
+            <a href="/boards" class="btn btn-outline-secondary ms-2">
+                <i class="fas fa-list"></i> 목록으로
+            </a>
+        </div>
+
+        <!-- Form Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">
+                    <i class="fas fa-edit"></i> 게시글 수정
+                </h3>
+            </div>
+            <div class="card-body">
+                <form th:action="@{/boards/{id}/edit(id=${boardId})}" method="post" th:object="${board}">
+                    <!-- Title -->
+                    <div class="mb-3">
+                        <label for="title" class="form-label">
+                            <i class="fas fa-heading"></i> 제목 <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" 
+                               class="form-control form-control-lg" 
+                               id="title" 
+                               th:field="*{title}"
+                               placeholder="게시글 제목을 입력하세요"
+                               required
+                               maxlength="200">
+                        <div class="form-text">최대 200자까지 입력 가능합니다.</div>
+                    </div>
+
+                    <!-- Author -->
+                    <div class="mb-3">
+                        <label for="author" class="form-label">
+                            <i class="fas fa-user"></i> 작성자 <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="author" 
+                               th:field="*{author}"
+                               placeholder="작성자명을 입력하세요"
+                               required
+                               maxlength="50">
+                        <div class="form-text">최대 50자까지 입력 가능합니다.</div>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="mb-4">
+                        <label for="content" class="form-label">
+                            <i class="fas fa-align-left"></i> 내용 <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control" 
+                                  id="content" 
+                                  th:field="*{content}"
+                                  rows="15"
+                                  placeholder="게시글 내용을 입력하세요"
+                                  required></textarea>
+                        <div class="form-text">게시글의 상세 내용을 작성해주세요.</div>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <a th:href="@{/boards/{id}(id=${boardId})}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> 취소
+                            </a>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-outline-warning me-2" onclick="resetForm()">
+                                <i class="fas fa-undo"></i> 원래대로
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> 수정 완료
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Confirmation Modal -->
+        <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="confirmModalLabel">
+                            <i class="fas fa-question-circle text-primary"></i> 수정 확인
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>게시글을 수정하시겠습니까?</p>
+                        <p class="text-muted small">수정된 내용이 저장됩니다.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                        <button type="button" class="btn btn-primary" id="confirmSave">
+                            <i class="fas fa-save"></i> 수정 완료
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Validation and Interaction -->
+        <script>
+            let originalValues = {};
+            
+            document.addEventListener('DOMContentLoaded', function() {
+                const form = document.querySelector('form');
+                const titleInput = document.getElementById('title');
+                const authorInput = document.getElementById('author');
+                const contentInput = document.getElementById('content');
+                
+                // Store original values
+                originalValues = {
+                    title: titleInput.value,
+                    author: authorInput.value,
+                    content: contentInput.value
+                };
+                
+                // Form submission with confirmation
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const title = titleInput.value.trim();
+                    const author = authorInput.value.trim();
+                    const content = contentInput.value.trim();
+                    
+                    if (!title || !author || !content) {
+                        alert('모든 필수 항목을 입력해주세요.');
+                        return false;
+                    }
+                    
+                    if (title.length > 200) {
+                        alert('제목은 200자를 초과할 수 없습니다.');
+                        return false;
+                    }
+                    
+                    if (author.length > 50) {
+                        alert('작성자명은 50자를 초과할 수 없습니다.');
+                        return false;
+                    }
+                    
+                    // Check if anything changed
+                    if (title === originalValues.title && 
+                        author === originalValues.author && 
+                        content === originalValues.content) {
+                        alert('변경된 내용이 없습니다.');
+                        return false;
+                    }
+                    
+                    // Show confirmation modal
+                    const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+                    modal.show();
+                });
+                
+                // Confirm save button
+                document.getElementById('confirmSave').addEventListener('click', function() {
+                    form.submit();
+                });
+                
+                // Character counter for title
+                const titleHelp = titleInput.nextElementSibling;
+                
+                titleInput.addEventListener('input', function() {
+                    const remaining = 200 - this.value.length;
+                    titleHelp.textContent = `${this.value.length}/200자 (${remaining}자 남음)`;
+                    
+                    if (remaining < 0) {
+                        titleHelp.className = 'form-text text-danger';
+                    } else if (remaining < 20) {
+                        titleHelp.className = 'form-text text-warning';
+                    } else {
+                        titleHelp.className = 'form-text';
+                    }
+                });
+                
+                // Character counter for author
+                const authorHelp = authorInput.nextElementSibling;
+                
+                authorInput.addEventListener('input', function() {
+                    const remaining = 50 - this.value.length;
+                    authorHelp.textContent = `${this.value.length}/50자 (${remaining}자 남음)`;
+                    
+                    if (remaining < 0) {
+                        authorHelp.className = 'form-text text-danger';
+                    } else if (remaining < 5) {
+                        authorHelp.className = 'form-text text-warning';
+                    } else {
+                        authorHelp.className = 'form-text';
+                    }
+                });
+                
+                // Initialize counters
+                titleInput.dispatchEvent(new Event('input'));
+                authorInput.dispatchEvent(new Event('input'));
+            });
+            
+            // Reset form to original values
+            function resetForm() {
+                if (confirm('원래 값으로 되돌리시겠습니까?')) {
+                    document.getElementById('title').value = originalValues.title;
+                    document.getElementById('author').value = originalValues.author;
+                    document.getElementById('content').value = originalValues.content;
+                    
+                    // Trigger input events to update counters
+                    document.getElementById('title').dispatchEvent(new Event('input'));
+                    document.getElementById('author').dispatchEvent(new Event('input'));
+                }
+            }
+        </script>
+
+        <style>
+            .form-control:focus {
+                border-color: #0d6efd;
+                box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+            }
+            
+            .card {
+                box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            }
+            
+            .text-warning {
+                color: #f57c00 !important;
+            }
+        </style>
+    </div>
+</body>
+</html>

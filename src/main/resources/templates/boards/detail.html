@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" th:replace="layout/base :: layout(~{::content}, ~{::title})">
+<head>
+    <title th:text="${board.title}">게시글 상세</title>
+</head>
+<body>
+    <div th:fragment="content">
+        <!-- Navigation Buttons -->
+        <div class="mb-3">
+            <a href="/boards" class="btn btn-outline-secondary">
+                <i class="fas fa-list"></i> 목록으로
+            </a>
+        </div>
+
+        <!-- Board Detail Card -->
+        <div class="card">
+            <div class="card-header">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h2 class="mb-0" th:text="${board.title}">게시글 제목</h2>
+                    </div>
+                    <div class="col-auto">
+                        <div class="btn-group" role="group">
+                            <a th:href="@{/boards/{id}/edit(id=${board.id})}" class="btn btn-warning">
+                                <i class="fas fa-edit"></i> 수정
+                            </a>
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                <i class="fas fa-trash"></i> 삭제
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-body">
+                <!-- Board Info -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <p class="mb-1">
+                            <i class="fas fa-user text-primary"></i> 
+                            <strong>작성자:</strong> <span th:text="${board.author}">작성자명</span>
+                        </p>
+                        <p class="mb-1">
+                            <i class="fas fa-calendar text-success"></i> 
+                            <strong>작성일:</strong> 
+                            <span th:text="${#temporals.format(board.createdAt, 'yyyy년 MM월 dd일 HH:mm')}">2024-01-01 12:00</span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1">
+                            <i class="fas fa-eye text-info"></i> 
+                            <strong>조회수:</strong> <span th:text="${board.viewCount}">0</span>
+                        </p>
+                        <p class="mb-1" th:if="${board.updatedAt != board.createdAt}">
+                            <i class="fas fa-edit text-warning"></i> 
+                            <strong>수정일:</strong> 
+                            <span th:text="${#temporals.format(board.updatedAt, 'yyyy년 MM월 dd일 HH:mm')}">2024-01-01 12:00</span>
+                        </p>
+                    </div>
+                </div>
+
+                <hr>
+
+                <!-- Board Content -->
+                <div class="content-area">
+                    <div class="content-text" th:utext="${#strings.replace(#strings.escapeXml(board.content), T(System).lineSeparator(), '&lt;br&gt;')}">
+                        게시글 내용이 여기에 표시됩니다.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="mt-4 text-center">
+            <a href="/boards" class="btn btn-secondary me-2">
+                <i class="fas fa-list"></i> 목록으로
+            </a>
+            <a th:href="@{/boards/{id}/edit(id=${board.id})}" class="btn btn-warning me-2">
+                <i class="fas fa-edit"></i> 수정하기
+            </a>
+            <a href="/boards/new" class="btn btn-primary">
+                <i class="fas fa-plus"></i> 새 글 작성
+            </a>
+        </div>
+
+        <!-- Delete Confirmation Modal -->
+        <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteModalLabel">
+                            <i class="fas fa-exclamation-triangle text-danger"></i> 게시글 삭제
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>정말로 이 게시글을 삭제하시겠습니까?</p>
+                        <p class="text-muted small">삭제된 게시글은 복구할 수 없습니다.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                        <form th:action="@{/boards/{id}/delete(id=${board.id})}" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> 삭제
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            .content-area {
+                min-height: 200px;
+                background-color: #f8f9fa;
+                padding: 20px;
+                border-radius: 8px;
+                border: 1px solid #dee2e6;
+            }
+            
+            .content-text {
+                line-height: 1.8;
+                font-size: 16px;
+                color: #333;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+            }
+        </style>
+    </div>
+</body>
+</html>
